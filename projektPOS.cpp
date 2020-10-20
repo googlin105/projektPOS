@@ -5,9 +5,6 @@
 #include <chrono>
 
 
-
-
-
 class Map {
 private:
     int length;
@@ -104,7 +101,7 @@ protected:
             if (ch == 'X') { this->x += rest; }
             if (ch == 'Y') { this->y += rest; }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         printf("%dx%x\n", this->giveX(), this->giveY());
 
     }
@@ -122,12 +119,9 @@ public:
 };
 
 class Ship : public Vehicle {
-private:
-   
-    
 public:
     Ship(int l, int h, int speed) :Vehicle(l, h, speed) {};
-    void run() {
+    void run() {                                                   //poruszanie sie po prostokacie
         int startX = this->x;
         int startY = this->y;
         while (true) {
@@ -137,8 +131,35 @@ public:
             this->walkLine(this->y, startY, 'Y');
         }      
     }
+};
 
-
+class Plane : public Vehicle {
+public:
+    Plane(int l, int h, int speed) :Vehicle(l, h, speed) {};
+    void run() {                                                   //poruszanie sie po prostej
+        int startX = this->x;
+        int startY = this->y;
+        int choice = rand() % 2;
+        char direction = 'X';
+        switch (choice) {
+        case 0:direction = 'X';
+        case 1:direction = 'Y';
+        }
+        while (true) {
+            switch (choice) {
+            case 0: 
+                this->walkLine(this->x, this->destX, 'X');
+                this->walkLine(this->x, startX, 'X');
+                break;
+            
+            case 1: 
+                this->walkLine(this->y, this->destY, 'Y');
+                this->walkLine(this->y, startY, 'Y');
+                break;
+            
+            }
+        }
+    }
 };
 
 
@@ -160,7 +181,8 @@ int main()
     
     printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v1.giveID(), v1.giveX(), v1.giveY(),v1.giveSpeed(),v1.giveDestX(),v1.giveDestY());
     printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v2.giveID(), v2.giveX(), v2.giveY(), v2.giveSpeed(), v2.giveDestX(), v2.giveDestY());
-    v1.run();
+    Plane p1 = Plane(mapa.giveL(), mapa.giveH(), 10);
+    p1.run();
 
     
 
