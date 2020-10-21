@@ -80,7 +80,10 @@ protected:
         }
         int hops = diff / this->speed;
         int rest = diff % this->speed;
+        
         while (hops > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            printf("%dx%d\n", this->giveX(), this->giveY());
             if (flag) {
                 if (ch == 'X') { this->x -= speed; }
                 if (ch == 'Y') { this->y -= speed; }
@@ -91,7 +94,10 @@ protected:
                 if (ch == 'Y') { this->y += speed; }
             }
             hops--;
+            
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        printf("%dx%d\n", this->giveX(), this->giveY());
         if (flag) {
             if (ch == 'X') { this->x -= rest; }
             if (ch == 'Y') { this->y -= rest; }
@@ -101,8 +107,8 @@ protected:
             if (ch == 'X') { this->x += rest; }
             if (ch == 'Y') { this->y += rest; }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        printf("%dx%x\n", this->giveX(), this->giveY());
+        
+        
 
     }
 public:
@@ -162,6 +168,57 @@ public:
     }
 };
 
+class Car :public Vehicle {
+private:
+    int giveDirection() {
+        bool flagOut = true;
+        int tmp;
+        while (flagOut) {
+            tmp = rand() % 4;
+            switch (tmp) {
+            case 0:
+                if (this->y + this->speed <= this->mapH) { flagOut = false; }
+                break;
+            case 1:
+                if (this->x + this->speed <= this->mapL) { flagOut = false; }
+                break;
+            case 2:
+                if (this->y - this->speed >= 0) { flagOut = false; }
+                break;
+            case 3:
+                if (this->x - this->speed >= 0) { flagOut = false; }
+            }
+        }
+        return tmp;
+    }
+public:
+    Car(int l, int h, int speed) :Vehicle(l, h, speed) {};
+    void run() {                                              //losowe poruszanie sie
+        while (true) {
+            int direction = this->giveDirection();
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            printf("%dx%d\n", this->giveX(), this->giveY());
+            switch (direction) {
+            case 0:
+                this->y += this->speed;
+                break;
+            case 1:
+                this->x += this->speed;
+                break;
+            case 2:
+                this->y -= this->speed;
+                break;
+            case 3:
+                this->x -= this->speed;
+
+            }
+
+        }
+
+    }
+
+};
+
 
 int Point::numOfPoints = 0;
 
@@ -179,12 +236,11 @@ int main()
     Ship v1 = Ship(mapa.giveL(), mapa.giveH(),10);
     Ship v2 = Ship(mapa.giveL(), mapa.giveH(),5);
     
-    printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v1.giveID(), v1.giveX(), v1.giveY(),v1.giveSpeed(),v1.giveDestX(),v1.giveDestY());
-    printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v2.giveID(), v2.giveX(), v2.giveY(), v2.giveSpeed(), v2.giveDestX(), v2.giveDestY());
-    Plane p1 = Plane(mapa.giveL(), mapa.giveH(), 10);
+    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(),p1.giveSpeed(),p1.giveDestX(),p1.giveDestY());
+    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v2.giveID(), v2.giveX(), v2.giveY(), v2.giveSpeed(), v2.giveDestX(), v2.giveDestY());
+    Car p1 = Car(mapa.giveL(), mapa.giveH(), 10);
+    printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(), p1.giveSpeed(), p1.giveDestX(), p1.giveDestY());
     p1.run();
-
-    
 
 }
 
