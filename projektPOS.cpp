@@ -3,28 +3,7 @@
 #include <time.h>
 #include <thread>
 #include <chrono>
-
-
-class Map {
-private:
-    int length;
-    int heigth;
-public:
-    void toString();
-    int giveL() { return this->length; }
-    int giveH() { return this->heigth; }
-    Map(int l, int h) {
-        this->length = l;
-        this->heigth = h;
-    }
-    Map() {
-        this->length = 500;
-        this->heigth = 500;
-    }
-    ~Map() {
-        std::cout << "Map deleted.\n";
-    }
-};
+#include <vector>
 
 class Point {
 private:
@@ -34,7 +13,7 @@ private:
 protected:
     int x;
     int y;
-    int mapL;                                 //zamieszczenie informacji o wielkosci mapy w klasie Point
+    int mapL;                               //zamieszczenie informacji o wielkosci mapy w klasie Point
     int mapH;
 public:
 
@@ -46,9 +25,9 @@ public:
     }
     int giveID() { return this->id; }
     int static giveNumOfPoints() { return numOfPoints; }
-    Point(int l, int h) { 
-        this->id = Point::numOfPoints+1;
-        Point::numOfPoints+=1; 
+    Point(int l, int h) {
+        this->id = Point::numOfPoints + 1;
+        Point::numOfPoints += 1;
         this->x = rand() % l;                 //losowa generacja punktu poczatkowego
         this->y = rand() % h;
         this->mapL = l;
@@ -80,10 +59,10 @@ protected:
         }
         int hops = diff / this->speed;
         int rest = diff % this->speed;
-        
+
         while (hops > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            printf("%dx%d\n", this->giveX(), this->giveY());
+             printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
             if (flag) {
                 if (ch == 'X') { this->x -= speed; }
                 if (ch == 'Y') { this->y -= speed; }
@@ -94,10 +73,10 @@ protected:
                 if (ch == 'Y') { this->y += speed; }
             }
             hops--;
-            
+
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        printf("%dx%d\n", this->giveX(), this->giveY());
+         printf("%d:%dx%d\n",this->giveID(), this->giveX(), this->giveY());
         if (flag) {
             if (ch == 'X') { this->x -= rest; }
             if (ch == 'Y') { this->y -= rest; }
@@ -107,21 +86,29 @@ protected:
             if (ch == 'X') { this->x += rest; }
             if (ch == 'Y') { this->y += rest; }
         }
-        
-        
+
+
 
     }
 public:
+    virtual void run() = 0;
     Vehicle(int l, int h, int speed) : Point(l, h) {
-            this->speed = speed;
-            this->destX = rand() % this->mapL;            // wyznaczenie punktu koncowego
-            this->destY = rand() % this->mapH;
+        this->speed = speed;
+        this->destX = rand() % this->mapL;            // wyznaczenie punktu koncowego
+        this->destY = rand() % this->mapH;
     }
+    Vehicle() :Point() {
+        this->speed = 5;
+        this->destX = rand() % 100;            
+        this->destY = rand() % 100;
+    };
+    Vehicle(const Vehicle&) = default;
+    Vehicle& operator=(const Vehicle&) = default;
     int giveDestX() { return this->destX; }
     int giveDestY() { return this->destY; }
     int giveSpeed() { return this->speed; }
-    
-    
+
+
 };
 
 class Ship : public Vehicle {
@@ -135,7 +122,7 @@ public:
             this->walkLine(this->y, this->destY, 'Y');
             this->walkLine(this->x, startX, 'X');
             this->walkLine(this->y, startY, 'Y');
-        }      
+        }
     }
 };
 
@@ -153,16 +140,16 @@ public:
         }
         while (true) {
             switch (choice) {
-            case 0: 
+            case 0:
                 this->walkLine(this->x, this->destX, 'X');
                 this->walkLine(this->x, startX, 'X');
                 break;
-            
-            case 1: 
+
+            case 1:
                 this->walkLine(this->y, this->destY, 'Y');
                 this->walkLine(this->y, startY, 'Y');
                 break;
-            
+
             }
         }
     }
@@ -197,7 +184,7 @@ public:
         while (true) {
             int direction = this->giveDirection();
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            printf("%dx%d\n", this->giveX(), this->giveY());
+            printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
             switch (direction) {
             case 0:
                 this->y += this->speed;
@@ -219,6 +206,73 @@ public:
 
 };
 
+class Map {
+private:
+    int length;
+    int heigth;
+    
+public:
+    std::vector <Car> cars;
+    std::vector <Plane> planes;
+    std::vector <Ship> ships;
+    std::vector <std::thread> vecOfThreads;
+    int numberOfCars = 0;
+    int numberOfPlanes = 0;
+    int numberOfShips = 0;
+    int numberOfThreads = 0;
+    void toString();
+    int giveL() { return this->length; }
+    int giveH() { return this->heigth; }
+    Map(int l, int h) {
+        this->length = l;
+        this->heigth = h;
+    }
+    Map() {
+        this->length = 500;
+        this->heigth = 500;
+    }
+    ~Map() {
+        std::cout << "Map deleted.\n";
+    }
+    
+    void addCar(int speed) {
+        Car tmp = Car(this->length, this->heigth, speed);
+        this->cars.push_back(tmp);
+        this->numberOfCars++;
+    }
+    void addShip(int speed) {
+        Ship tmp = Ship(this->length, this->heigth, speed);
+        this->ships.push_back(tmp);
+        this->numberOfShips++;
+    }
+    void addPlane(int speed) {
+        Plane tmp = Plane(this->length, this->heigth, speed);
+        this->planes.push_back(tmp);
+        this->numberOfPlanes++;
+    }
+    void run() {
+        for (Vehicle& veh : this->cars) {
+            vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &veh)));
+            this->numberOfThreads++;
+        }
+        for (Vehicle& veh : this->ships) {
+            vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &veh)));
+            this->numberOfThreads++;
+        }
+        for (Vehicle& veh : this->planes) {
+            vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &veh)));
+            this->numberOfThreads++;
+        }
+        int i = 0;
+        while (true) {
+            i++;
+        }
+    }
+    
+};
+
+
+
 
 int Point::numOfPoints = 0;
 
@@ -233,14 +287,57 @@ int main()
     const int HEI = 200;
     Map mapa = Map(LEN,HEI);
     mapa.toString();
-    Ship v1 = Ship(mapa.giveL(), mapa.giveH(),10);
-    Ship v2 = Ship(mapa.giveL(), mapa.giveH(),5);
+
     
-    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(),p1.giveSpeed(),p1.giveDestX(),p1.giveDestY());
-    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", v2.giveID(), v2.giveX(), v2.giveY(), v2.giveSpeed(), v2.giveDestX(), v2.giveDestY());
-    Car p1 = Car(mapa.giveL(), mapa.giveH(), 10);
-    printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(), p1.giveSpeed(), p1.giveDestX(), p1.giveDestY());
-    p1.run();
+    mapa.addCar(10);
+    mapa.addCar(10);
+    mapa.addCar(5);
+    mapa.addCar(1);
+    mapa.addCar(1);
+    mapa.addPlane(10);
+    mapa.addPlane(3);
+    mapa.addPlane(12);
+    mapa.addShip(4);
+    mapa.addShip(3);
+    mapa.addShip(2);
+    mapa.run();
+   
+    /*
+    std::vector <std::thread> vecOfThreads;
+    vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &s2)));
+    vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &s1)));
+    */
+
+
+  
+ 
+  
+    
+
+
+
+    /*std::thread thread1([&](Vehicle* vehicle) {vehicle->run(); }, &s1);
+    std::thread thread2([&](Vehicle* vehicle) {vehicle->run(); }, &s2);
+    std::thread thread3([&](Vehicle* vehicle) {vehicle->run(); }, &p1);
+    std::thread thread4([&](Vehicle* vehicle) {vehicle->run(); }, &c1);
+    */
+  
+    
+
+
+    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(), p1.giveSpeed(), p1.giveDestX(), p1.giveDestY());
+    /*
+    std::thread thread1([&](Vehicle* vehicle) {vehicle->run(); }, &v1);
+    std::thread thread2([&](Vehicle* vehicle) {vehicle->run(); },&v2);
+    std::thread thread3([&](Vehicle* vehicle) {vehicle->run(); }, &p1);
+    thread1.join();
+    thread2.join();
+    thread3.join();
+    */
+
+
+    
+
 
 }
 
