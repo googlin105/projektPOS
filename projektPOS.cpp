@@ -314,12 +314,24 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             for (Vehicle& veh : this->cars) {
                 char buffer[64];
-                sprintf_s(buffer, "Vehicle's id - %d", veh.giveID(), veh.giveDestX(), veh.giveDestY());
+                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
                 bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
-                sprintf_s(buffer, " position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
+                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
                 bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
-                //sprintf_s(buffer, "x%d\n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
-                //bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+            }
+            for (Vehicle& veh : this->planes) {
+                char buffer[64];
+                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+            }
+            for (Vehicle& veh : this->ships) {
+                char buffer[64];
+                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
             }
 
         }
@@ -359,52 +371,6 @@ int main()
     mapa.addShip(2);
     mapa.run();
    
-    /*
-    std::vector <std::thread> vecOfThreads;
-    vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &s2)));
-    vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &s1)));
-    */
-
-
-  
- 
-  
-    
-
-
-
-    /*std::thread thread1([&](Vehicle* vehicle) {vehicle->run(); }, &s1);
-    std::thread thread2([&](Vehicle* vehicle) {vehicle->run(); }, &s2);
-    std::thread thread3([&](Vehicle* vehicle) {vehicle->run(); }, &p1);
-    std::thread thread4([&](Vehicle* vehicle) {vehicle->run(); }, &c1);
-    */
-  
-    
-
-
-    //printf("Punkt %d - %dx%d; %d; dest - %dx%d\n", p1.giveID(), p1.giveX(), p1.giveY(), p1.giveSpeed(), p1.giveDestX(), p1.giveDestY());
-    /*
-    std::thread thread1([&](Vehicle* vehicle) {vehicle->run(); }, &v1);
-    std::thread thread2([&](Vehicle* vehicle) {vehicle->run(); },&v2);
-    std::thread thread3([&](Vehicle* vehicle) {vehicle->run(); }, &p1);
-    thread1.join();
-    thread2.join();
-    thread3.join();
-    */
-
-
-    
 
 
 }
-
-// Uruchomienie programu: Ctrl + F5 lub menu Debugowanie > Uruchom bez debugowania
-// Debugowanie programu: F5 lub menu Debugowanie > Rozpocznij debugowanie
-
-// Porady dotyczące rozpoczynania pracy:
-//   1. Użyj okna Eksploratora rozwiązań, aby dodać pliki i zarządzać nimi
-//   2. Użyj okna programu Team Explorer, aby nawiązać połączenie z kontrolą źródła
-//   3. Użyj okna Dane wyjściowe, aby sprawdzić dane wyjściowe kompilacji i inne komunikaty
-//   4. Użyj okna Lista błędów, aby zobaczyć błędy
-//   5. Wybierz pozycję Projekt > Dodaj nowy element, aby utworzyć nowe pliki kodu, lub wybierz pozycję Projekt > Dodaj istniejący element, aby dodać istniejące pliku kodu do projektu
-//   6. Aby w przyszłości ponownie otworzyć ten projekt, przejdź do pozycji Plik > Otwórz > Projekt i wybierz plik sln
