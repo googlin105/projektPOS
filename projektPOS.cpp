@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <WS2tcpip.h>
+
+#pragma comment (lib, "ws2_32.lib")
 
 class Point {
 private:
@@ -197,13 +200,9 @@ public:
                 break;
             case 3:
                 this->x -= this->speed;
-
             }
-
         }
-
     }
-
 };
 
 class Map {
@@ -251,6 +250,7 @@ public:
         this->numberOfPlanes++;
     }
     void run() {
+
         for (Vehicle& veh : this->cars) {
             vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &veh)));
             this->numberOfThreads++;
@@ -263,10 +263,67 @@ public:
             vecOfThreads.push_back(std::move(std::thread([&](Vehicle* vehicle) {vehicle->run(); }, &veh)));
             this->numberOfThreads++;
         }
-        int i = 0;
-        while (true) {
-            i++;
+
+        WSADATA wsaData;
+
+        int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (result != NO_ERROR)
+            printf("Initialization error.\n");
+
+        SOCKET mainSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (mainSocket == INVALID_SOCKET)
+        {
+            printf("Error creating socket: %ld\n", WSAGetLastError());
+            WSACleanup();
         }
+
+        sockaddr_in service;
+        memset(&service, 0, sizeof(service));
+        service.sin_family = AF_INET;
+        service.sin_port = htons(9000);
+
+        if (bind(mainSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
+        {
+            printf("bind() failed.\n");
+            closesocket(mainSocket);
+        }
+        if (listen(mainSocket, 1) == SOCKET_ERROR)
+            printf("Error listening on socket.\n");
+
+        SOCKET acceptSocket = SOCKET_ERROR;
+        printf("Waiting for a client to connect...\n");
+
+        while (acceptSocket == SOCKET_ERROR)
+        {
+            acceptSocket = accept(mainSocket, NULL, NULL);
+        }
+
+        printf("Client connected.\n");
+        mainSocket = acceptSocket;
+
+        int bytesSent;
+        int bytesRecv = SOCKET_ERROR;
+        char sendbuf[64] = "Server says hello!\n";
+        char recvbuf[64] = "";
+
+        bytesRecv = recv(mainSocket, recvbuf, 32, 0);
+        printf("Bytes received: %ld\n", bytesRecv);
+        printf("Received text: %s\n", recvbuf);
+
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            for (Vehicle& veh : this->cars) {
+                char buffer[64];
+                sprintf_s(buffer, "Vehicle's id - %d", veh.giveID(), veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                sprintf_s(buffer, " position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
+                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                //sprintf_s(buffer, "x%d\n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
+                //bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+            }
+
+        }
+
     }
     
 };
@@ -291,7 +348,7 @@ int main()
     
     mapa.addCar(10);
     mapa.addCar(10);
-    mapa.addCar(5);
+    mapa.addCar(3);
     mapa.addCar(1);
     mapa.addCar(1);
     mapa.addPlane(10);
