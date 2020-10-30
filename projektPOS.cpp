@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <stdlib.h>
 #include <time.h>
 #include <thread>
@@ -20,8 +20,8 @@ protected:
     int mapH;
 public:
 
-    int giveX() { return x; }
-    int giveY() { return y; }
+    volatile int giveX() { return x; }
+    volatile int giveY() { return y; }
     void setPoint(int x, int y) {
         this->x = x;
         this->y = y;
@@ -64,8 +64,8 @@ protected:
         int rest = diff % this->speed;
 
         while (hops > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-             printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            //printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
             if (flag) {
                 if (ch == 'X') { this->x -= speed; }
                 if (ch == 'Y') { this->y -= speed; }
@@ -78,8 +78,8 @@ protected:
             hops--;
 
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-         printf("%d:%dx%d\n",this->giveID(), this->giveX(), this->giveY());
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        //printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
         if (flag) {
             if (ch == 'X') { this->x -= rest; }
             if (ch == 'Y') { this->y -= rest; }
@@ -102,7 +102,7 @@ public:
     }
     Vehicle() :Point() {
         this->speed = 5;
-        this->destX = rand() % 100;            
+        this->destX = rand() % 100;
         this->destY = rand() % 100;
     };
     Vehicle(const Vehicle&) = default;
@@ -186,8 +186,8 @@ public:
     void run() {                                              //losowe poruszanie sie
         while (true) {
             int direction = this->giveDirection();
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            //printf("%d:%dx%d\n", this->giveID(), this->giveX(), this->giveY());
             switch (direction) {
             case 0:
                 this->y += this->speed;
@@ -209,7 +209,7 @@ class Map {
 private:
     int length;
     int heigth;
-    
+
 public:
     std::vector <Car> cars;
     std::vector <Plane> planes;
@@ -233,7 +233,7 @@ public:
     ~Map() {
         std::cout << "Map deleted.\n";
     }
-    
+
     void addCar(int speed) {
         Car tmp = Car(this->length, this->heigth, speed);
         this->cars.push_back(tmp);
@@ -280,7 +280,7 @@ public:
         sockaddr_in service;
         memset(&service, 0, sizeof(service));
         service.sin_family = AF_INET;
-        service.sin_port = htons(9000);
+        service.sin_port = htons(9002);
 
         if (bind(mainSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
         {
@@ -306,38 +306,34 @@ public:
         char sendbuf[64] = "Server says hello!\n";
         char recvbuf[64] = "";
 
-        bytesRecv = recv(mainSocket, recvbuf, 32, 0);
+        bytesRecv = recv(mainSocket, recvbuf, 64, 0);
         printf("Bytes received: %ld\n", bytesRecv);
         printf("Received text: %s\n", recvbuf);
 
         while (true) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
             for (Vehicle& veh : this->cars) {
                 char buffer[64];
-                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
-                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                sprintf_s(buffer, "{\"id\":%d,\"x_pos\":%d,\"y_pos\":%d}", veh.giveID(), veh.giveX(), veh.giveY());
+                bytesSent = send(mainSocket, buffer, strlen(buffer), 0);
             }
             for (Vehicle& veh : this->planes) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 char buffer[64];
-                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
-                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                sprintf_s(buffer, "{\"id\":%d,\"x_pos\":%d,\"y_pos\":%d}", veh.giveID(), veh.giveX(), veh.giveY());
+                bytesSent = send(mainSocket, buffer, strlen(buffer), 0);
             }
             for (Vehicle& veh : this->ships) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 char buffer[64];
-                sprintf_s(buffer, "Vehicle's id - %d \n", veh.giveID(), veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
-                sprintf_s(buffer, "position : %dx%d\n", veh.giveDestX(), veh.giveDestY());
-                bytesSent = send(mainSocket, buffer, strlen(sendbuf), 0);
+                sprintf_s(buffer, "{\"id\":%d,\"x_pos\":%d,\"y_pos\":%d}", veh.giveID(), veh.giveX(), veh.giveY());
+                bytesSent = send(mainSocket, buffer, strlen(buffer), 0);
             }
-
         }
 
     }
-    
+
 };
 
 
@@ -352,12 +348,12 @@ void Map::toString() {
 int main()
 {
     srand(time(NULL));
-    const int LEN = 200;
-    const int HEI = 200;
-    Map mapa = Map(LEN,HEI);
+    const int LEN = 90;
+    const int HEI = 180;
+    Map mapa = Map(LEN, HEI);
     mapa.toString();
 
-    
+
     mapa.addCar(10);
     mapa.addCar(10);
     mapa.addCar(3);
@@ -370,7 +366,7 @@ int main()
     mapa.addShip(3);
     mapa.addShip(2);
     mapa.run();
-   
+
 
 
 }

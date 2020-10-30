@@ -1,7 +1,11 @@
-let lat = 54;
-let lon = 18;
+const lat = 0;
+const lon = 0;
+const objects = new Map();
+let doOnce = 1;
 
-var mymap = L.map("mapid").setView([lat, lon], 13);
+let mymap = L.map("mapid").setView([lat, lon], 2);
+const marker = [L.marker([lat, lon]).addTo(mymap)];
+
 L.tileLayer(
   "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
   {
@@ -15,25 +19,49 @@ L.tileLayer(
       "pk.eyJ1Ijoic3RlZWV3IiwiYSI6ImNrZ203NW5ubTEwNjIydW5hdHF2am9ndWkifQ.4hltR0t-0nik0FZIz9Nlcw",
   }
 ).addTo(mymap);
-var marker = L.marker([lat, lon]).addTo(mymap);
+L.marker([lat, lon]).addTo(mymap);
 
 document.getElementById("latitude").textContent = lat;
 document.getElementById("longitude").textContent = lon;
 
 var socket = io();
-// socket.on("user_connected", (data) => {
-//   console.log(data);
-// });
-
-let test = {
-  id: 1,
-  x_pos: 2,
-};
-console.table(test);
 
 socket.on("connect", () => {
   console.log("user connected");
   socket.on("tcp_data", (data) => {
-    console.log(JSON.parse(data));
+    const objects = new Map(data);
+    console.log(objects);
+    console.log(objects.size);
+
+    if (doOnce) {
+      for (j = 1; j <= objects.size; j++) {
+        let values = objects.get(j);
+        console.log(`id: ${j}` + values.lat);
+        marker.push(L.marker([values.lat, values.lon]).addTo(mymap));
+      }
+      doOnce = 0;
+    }
+    console.log(marker);
+
+    for (j = 1; j <= objects.size; j++) {
+      let values = objects.get(j);
+      const latlng = L.latLng(values.lat, values.lon);
+      console.log(latlng);
+      marker[j].setLatLng(latlng);
+    }
+
+    // async function getPosition() {
+    //   const location = data.get(1);
+    //   // const lat = parsed.x_pos;
+    //   // const lon = parsed.y_pos;
+    //   // const latlng = L.latLng(lat, lon);
+    //   // marker.setLatLng(latlng);
+    //   console.log(location);
+    //   document.getElementById("latitude").textContent = lat;
+    //   document.getElementById("longitude").textContent = lon;
+    // }
+
+    // getPosition(data);
+    // setInterval(getPosition, 2000);
   });
 });
